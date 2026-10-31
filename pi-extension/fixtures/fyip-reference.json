@@ -1,0 +1,18 @@
+{
+  "source": "715eef69:test_alert_fyip.py; translated source expectations, not executed Python results",
+  "candidate": {
+    "kind": "outcome",
+    "title": "Release capability is now available",
+    "previous_state": "Release was not available to owners",
+    "current_state": "Release is available to owners",
+    "materiality": "Owners can now validate the requested workflow",
+    "evidence": [{"kind": "outcome", "detail": "Release was exercised by a representative owner"}],
+    "reconciled": true
+  },
+  "execution_only": ["All tests passed", "git status --short", "child process exited with code 1", "pytest", "npm test", "cargo test", "go test", "unittest", "exit code -1", "return 0", "$ run", "> run", "test result: ok", "docker run example", "kubectl get pods", "systemctl status example", "make test", "pip install example", "bash -c run", "python3 -m example"],
+  "clef": {
+    "model": "alpha-x-ai/clef-flash-NVFP4",
+    "usage": {"input_tokens": 100, "output_tokens": 0},
+    "answers": {"publish": {"type": "choice", "choice": "yes", "confidence": 0.9, "probabilities": {"yes": 0.9, "no": 0.1}}}
+  }
+}

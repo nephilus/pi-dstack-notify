@@ -1,0 +1,16 @@
+{
+  "synthetic": true,
+  "public_fields": "text, decision_key and revision are model-supplied assertions, never grants or semantic sameness proof",
+  "notification_identity": ["profile_id", "destination_id", "exact decision_key", "exact revision", "explicit_attention"],
+  "canonical_identity": ["profile_id", "destination_id", "pinned HTTPS origin", "native message_id"],
+  "immutable_correlation": ["exact native thread_id", "first notification identity"],
+  "scope_evidence_only": ["native project_id", "canonical project root", "original session"],
+  "cases": [
+    {"case":"same notification identity after origin, base, port, session or path change", "expected":"confirmed duplicate or terminal unknown before Inbox"},
+    {"case":"changed asserted key and/or revision, same known canonical request", "expected":"held canonical_identity_conflict; attempted identity becomes terminal unknown; original association unchanged"},
+    {"case":"validated known send IDs then failed full read", "expected":"association retained as send-known, no target admission, terminal unknown"},
+    {"case":"v1 identity with no native IDs", "expected":"exact old identity still suppresses; fresh asserted identity in that destination scope holds legacy_history_unmapped"},
+    {"case":"two distinct notification identities, distinct native requests, fresh explicitly initialized v2", "expected":"both can succeed; this is not proof of semantic distinctness"},
+    {"case":"changed assertion plus new/unknown native IDs or a different authority with no verified alias", "expected":"semantic sameness cannot be established; no cross-key semantic guarantee; never automatic retry or no-history inference"}
+  ]
+}

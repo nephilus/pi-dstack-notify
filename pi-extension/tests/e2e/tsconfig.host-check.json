@@ -1,0 +1,17 @@
+{
+  "extends": "../../adapter/tsconfig.host-check.json",
+  "files": [
+    "../../index.ts",
+    "fixture.ts",
+    "entry.test.ts",
+    "fyip.test.ts",
+    "owner.test.ts",
+    "tick.test.ts",
+    "tick-lifecycle.test.ts",
+    "poke.test.ts",
+    "minimal.test.ts",
+    "receipt-identity.test.ts",
+    "guard.ts",
+    "../adapter/deny-runtime.ts"
+  ]
+}

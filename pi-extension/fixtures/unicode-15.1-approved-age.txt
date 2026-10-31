@@ -1,0 +1,54 @@
+# Derived approved-set coverage, not a verbatim UCD file.
+# Source: https://www.unicode.org/Public/15.1.0/ucd/DerivedAge.txt
+# DerivedAge-15.1.0.txt (2023-07-28, 23:33:51 GMT).
+# Version: https://www.unicode.org/Public/15.1.0/ucd/ReadMe.txt (final 15.1.0).
+# Every approved scalar
+# has explicit Age <=14.0; no unassigned holes or assignment exclusions.
+# Source intervals clipped to approved grammar: 00AE..01F5, 2010..2027,
+# 3000..3037, 30A1..30FE. Clipping does not authorize other code points.
+# UnicodeData.txt First/Last corroborates 3400..4DBF, 4E00..9FFF,
+# AC00..D7A3 and 20000..2A6DF. Assignment is NOT grammar acceptance:
+# NFC and compatibility exclusions still apply independently.
+00B7;1.1
+00C0..00D6;1.1
+00D8..00F6;1.1
+00F8..01F5;1.1
+01F6..01F9;3.0
+01FA..0217;1.1
+0218..021F;3.0
+0220;3.2
+0221;4.0
+0222..0233;3.0
+0234..0236;4.0
+0237..0241;4.1
+0242..024F;5.0
+1E00..1E9A;1.1
+1E9B;2.0
+1E9C..1E9F;5.1
+1EA0..1EF9;1.1
+1EFA..1EFF;5.1
+2013..2014;1.1
+2018..2019;1.1
+201C..201D;1.1
+2026;1.1
+3001..3002;1.1
+3041..3094;1.1
+3095..3096;3.2
+30A1..30FA;1.1
+30FC..30FE;1.1
+3400..4DB5;3.0
+4DB6..4DBF;13.0
+4E00..9FA5;1.1
+9FA6..9FBB;4.1
+9FBC..9FC3;5.1
+9FC4..9FCB;5.2
+9FCC;6.1
+9FCD..9FD5;8.0
+9FD6..9FEA;10.0
+9FEB..9FEF;11.0
+9FF0..9FFC;13.0
+9FFD..9FFF;14.0
+AC00..D7A3;2.0
+20000..2A6D6;3.1
+2A6D7..2A6DD;13.0
+2A6DE..2A6DF;14.0

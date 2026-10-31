@@ -1,0 +1,20 @@
+{
+  "reference": "715eef692a6e32b38275a7125b760ce964234305 alert_selector.py QUESTION; Lead D2 curated-only state mapping",
+  "candidate": {
+    "kind": "milestone",
+    "title": "Requested capability available",
+    "previous_state": "Capability not available",
+    "current_state": "Requested capability is usable now",
+    "materiality": "Owner can use the requested capability",
+    "evidence": [{"kind": "milestone", "detail": "Observed requested capability in the completed service"}],
+    "reconciled": true
+  },
+  "state": {
+    "task_context": "Requested capability available\nOwner can use the requested capability",
+    "candidate_text": "Requested capability available\n\nRequested capability is usable now\n\nOwner can use the requested capability\n\nObserved requested capability in the completed service",
+    "current_public_final": "Requested capability available\n\nRequested capability is usable now\n\nOwner can use the requested capability\n\nObserved requested capability in the completed service",
+    "previous_public_final": "Capability not available",
+    "last_published_update": null,
+    "attention_state": "unknown"
+  }
+}

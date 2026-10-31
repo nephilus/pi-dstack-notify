@@ -1,0 +1,34 @@
+{
+  "note": "Synthetic values in native source-derived shapes; not runtime data. See docs/notification-product-inbox-source.md.",
+  "send": {
+    "content": [{"type": "text", "text": "Synthetic native success prose; never parsed"}],
+    "structuredContent": {
+      "message_id": "msg_01BX5ZZKBKACTAV9WEVGEMMVRZ",
+      "thread_id": "msg_01BX5ZZKBKACTAV9WEVGEMMVRZ",
+      "new_thread": true,
+      "thread_name": null,
+      "project": {"id": "prj_01BX5ZZKBKACTAV9WEVGEMMVRZ", "name": "project", "root": "/synthetic/project"},
+      "questions": [], "attachments": [], "superseded": [], "replayed": false,
+      "cursor": 2, "url": "https://inbox.example.invalid/#thread=msg_01BX5ZZKBKACTAV9WEVGEMMVRZ"
+    }
+  },
+  "read": {
+    "content": [{"type": "text", "text": "Synthetic full-read prose; never parsed"}],
+    "structuredContent": {
+      "thread": {
+        "thread_id": "msg_01BX5ZZKBKACTAV9WEVGEMMVRZ",
+        "project": {"id": "prj_01BX5ZZKBKACTAV9WEVGEMMVRZ", "name": "project", "root": "/synthetic/project", "key": "project-synthetic", "created_at": "2025-01-01T00:00:00.000Z"},
+        "subject": "A decision is ready.", "thread_name": null, "resolved_at": null,
+        "messages": [{
+          "id": "msg_01BX5ZZKBKACTAV9WEVGEMMVRZ", "project_id": "prj_01BX5ZZKBKACTAV9WEVGEMMVRZ",
+          "thread_id": "msg_01BX5ZZKBKACTAV9WEVGEMMVRZ", "reply_to": null,
+          "author": {"kind": "agent", "host": "pi", "session": "synthetic-session", "name": null},
+          "subject": "A decision is ready.", "subject_question": null, "body": "BODY",
+          "created_at": "2025-01-01T00:00:01.000Z", "resolved_at": null,
+          "idempotency_key": "synthetic-key", "thread_name": null
+        }]
+      },
+      "url": "https://inbox.example.invalid/#thread=msg_01BX5ZZKBKACTAV9WEVGEMMVRZ"
+    }
+  }
+}

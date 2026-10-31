@@ -1,0 +1,9 @@
+# Strictly synthetic, disposable-test values only; never real credentials.
+[safety]
+telegram_enabled = true
+telegram_bot_token = "987654321:NOT_A_REAL_TOKEN_fixture_abcdefghijk"
+telegram_chat_id = "-1009876543210"
+
+[notification_profile]
+profile_id = "primary"
+destination_id = "owner"
