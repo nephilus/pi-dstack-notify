@@ -72,7 +72,9 @@ for (const minimal of [true, false]) test('actual ' + (minimal ? 'minimal' : 'fu
   assert.equal(h.flag.reads, 1, 'lifecycle changes revoke operations, not reconfigure the adapter');
 });
 
-for (const minimal of [true, false]) for (const kind of ['missing', 'relative', 'invalid', 'getter_error'] as const)
+// Undefined on the package ROOT now selects its default; its missing/disabled cases have dedicated coverage.
+for (const minimal of [true, false]) for (const kind of (minimal
+  ? ['relative', 'invalid', 'getter_error'] as const : ['missing', 'relative', 'invalid', 'getter_error'] as const))
   test('actual ' + (minimal ? 'minimal' : 'full') + ' postbinding flag ' + kind + ' holds before observations/effects', async t => {
     const clock = new NoAutomaticClock();
     const h = fixture(t, 'echo', { minimal, fyip: 'yes', reminderClock: clock, pokeClock: clock });

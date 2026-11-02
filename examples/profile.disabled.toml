@@ -1,0 +1,9 @@
+# Disabled documentary template, NOT a working destination or credential.
+[safety]
+telegram_enabled = false
+telegram_bot_token = ""
+telegram_chat_id = ""
+
+[notification_profile]
+profile_id = "example"
+destination_id = "example"

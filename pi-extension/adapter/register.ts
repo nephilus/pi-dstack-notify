@@ -2,6 +2,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import type { TSchema } from 'typebox';
 import type { ServiceFactory } from './types.ts';
 import { NotificationAdapter, controlledCode } from './runtime.ts';
+import { selectConfigurationPath } from './config-selection.ts';
 import { createReminderScheduler } from './reminder-scheduler.ts';
 import type { ReminderClock } from './reminder-scheduler.ts';
 import { SEND, READ } from './schema.ts';
@@ -22,12 +23,13 @@ export interface RegistrationOptions {
 }
 export function registerNotificationExtension(pi: ExtensionAPI, options: RegistrationOptions): NotificationAdapter {
   pi.registerFlag('notification-config', {
-    description: 'Explicit absolute configured-notification path; absent disables publishing',
+    description: 'Absolute private config override; absent uses ~/.pi-dstack-notify/config.json on the package ROOT',
     type: 'string',
   });
   // Registration is inert. The core is constructed lazily only for an active
   // tool invocation with an explicit absolute config path.
-  const adapter = new NotificationAdapter({ resolveConfigPath: () => pi.getFlag('notification-config'),
+  const adapter = new NotificationAdapter({ resolveConfigPath: () =>
+    selectConfigurationPath(() => pi.getFlag('notification-config'), options.minimal === true),
     serviceFactory: options.serviceFactory, canonicalize: options.canonicalize });
   if (options.minimal !== true) {
   const scheduler = createReminderScheduler({ clock: options.reminderClock,

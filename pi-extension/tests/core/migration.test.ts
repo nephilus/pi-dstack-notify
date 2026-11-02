@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { syncBuiltinESMExports } from 'node:module';
 import { DatabaseSync } from 'node:sqlite';
-import { migrateLedgerV1ToV2, initializeLedgerV2, disableLedgerDispatch, fencePath, administrationLockPath } from '../../core/migration.ts';
+import { migrateLedgerV1ToV2, initializeLedgerV2, initializeLedgerV3, disableLedgerDispatch, fencePath, administrationLockPath } from '../../core/migration.ts';
 import { DeliveryLedger, LegacyMappingRequired } from '../../core/ledger.ts';
 import { canonicalSchema } from '../../core/schema.ts';
 import { digest } from '../../core/safety.ts';
@@ -42,6 +42,33 @@ function snapshot(filename: string) {
 function assertHistory(filename: string, before: ReturnType<typeof snapshot>) {
   const after = snapshot(filename); assert.deepEqual(after.deliveries, before.deliveries); assert.deepEqual(after.migrations, before.migrations);
 }
+
+test('fresh v2/v3 helpers refuse pre-existing SQLite sidecars under the lock without following links', t => {
+  const fresh = { ...prerequisites, noPriorHistory: true } as const;
+  for (const initialize of [initializeLedgerV2, initializeLedgerV3]) {
+    for (const suffix of ['-journal', '-wal', '-shm']) {
+      const directory = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'notification-fresh-sidecar-')));
+      fs.chmodSync(directory, 0o700); t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+      const filename = path.join(directory, 'fresh.sqlite'), sidecar = filename + suffix;
+      const bytes = Buffer.from(`synthetic retained ${suffix} bytes`);
+      fs.writeFileSync(sidecar, bytes, { mode: 0o600 });
+      assert.throws(() => initialize(filename, fresh), { message: 'ledger_cutover_ambiguous' });
+      assert.deepEqual(fs.readFileSync(sidecar), bytes);
+      assert.equal(fs.existsSync(filename), false); assert.equal(fs.existsSync(fencePath(filename)), false);
+      assert.equal(fs.existsSync(administrationLockPath(filename)), true);
+    }
+    const directory = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'notification-fresh-sidecar-link-')));
+    fs.chmodSync(directory, 0o700); t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    const filename = path.join(directory, 'fresh.sqlite'), sidecar = filename + '-journal';
+    fs.symlinkSync(path.join(directory, 'missing-target'), sidecar);
+    const link = fs.readlinkSync(sidecar);
+    assert.throws(() => initialize(filename, fresh), { message: 'ledger_cutover_ambiguous' });
+    assert.equal(fs.readlinkSync(sidecar), link); assert.equal(fs.lstatSync(sidecar).isSymbolicLink(), true);
+    assert.equal(fs.existsSync(filename), false); assert.equal(fs.existsSync(fencePath(filename)), false);
+    assert.equal(fs.existsSync(administrationLockPath(filename)), true);
+  }
+});
+
 after(() => assert.deepEqual(attempts, []));
 
 test('explicit v1→v2 preserves ALL old values/claims/unknowns and repeated valid migration is no-op', t => {

@@ -271,7 +271,13 @@ export class NotificationAdapter {
         if (op.admission.signal.aborted) abort();
       }
       this.fence(op);
-      this.service ??= this.options.serviceFactory({ configPath });
+      try { this.service ??= this.options.serviceFactory({ configPath }); }
+      catch (error) {
+        // The real core reports a fixed, non-private constructor code for a missing/invalid selected config.
+        if (error instanceof Error && error.message === 'configuration_unavailable')
+          throw new AdapterError('configuration_unavailable');
+        throw error;
+      }
       this.fence(op);
       const service = this.service;
       // Race revocation even if an uncooperative dependency ignores its signal.

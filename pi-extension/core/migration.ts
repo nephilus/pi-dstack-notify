@@ -1,4 +1,5 @@
-/** SOURCE/OFFLINE cutover only. No CLI, live discovery, automatic migration or restore. */
+/** Explicit administrative primitives; the packaged CLI exposes fresh-v3 initialization only.
+ * Never called by startup/publication; no live discovery, automatic migration or restore. */
 import * as fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
@@ -23,6 +24,18 @@ interface Fence {
 }
 export const fencePath = (filename: string): string => filename + '.cutover-v2.json';
 export const administrationLockPath = (filename: string): string => filename + '.cutover-v2.lock';
+/** Refuse unknown SQLite journal/WAL/SHM material before any fresh DB open.
+ * lstat observes the directory entry itself (including symlinks) without following it.
+ */
+function assertFreshSidecarsAbsent(filename: string): void {
+  for (const suffix of ['-journal', '-wal', '-shm']) {
+    try { fs.lstatSync(filename + suffix); } catch (error: any) {
+      if (error.code === 'ENOENT') continue;
+      throw error;
+    }
+    held();
+  }
+}
 function assertNoAdministration(filename: string): void {
   try { fs.lstatSync(administrationLockPath(filename)); }
   catch (e: any) { if (e.code === 'ENOENT') return; throw e; }
@@ -135,6 +148,7 @@ export function initializeLedgerV2(filename: string, assertions: NewLedgerAssert
     // A retained fence blocks recreation after DB loss/restoration. Never pick
     // another file or clear a partial cutover automatically.
     try { fs.lstatSync(fencePath(filename)); held(); } catch (e: any) { if (e.code !== 'ENOENT') throw e; }
+    assertFreshSidecarsAbsent(filename);
     const fd = fs.openSync(filename, fs.constants.O_RDWR | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW, 0o600);
     fs.fsyncSync(fd); fs.closeSync(fd); syncParent(filename);
     const f = makeFence('new-ledger', 0, digest('[]')); writeNewFence(filename, f);
@@ -149,12 +163,13 @@ export function initializeLedgerV2(filename: string, assertions: NewLedgerAssert
     } finally { db.close(); }
   });
 }
-/** Explicit NEW synthetic/source provisioning. Same exclusive administration,
+/** Explicit NEW-history provisioning with externally true assertions. Same exclusive administration,
  * assertions and fence protocol as v2; never called by the publisher. */
 export function initializeLedgerV3(filename: string, assertions: NewLedgerAssertions): void {
   return administer(filename, 'cutover', () => {
     assertPrerequisites(assertions, true); privateParent(filename);
     try { fs.lstatSync(fencePath(filename)); held(); } catch (e: any) { if (e.code !== 'ENOENT') throw e; }
+    assertFreshSidecarsAbsent(filename);
     const fd = fs.openSync(filename, fs.constants.O_RDWR | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW, 0o600);
     fs.fsyncSync(fd); fs.closeSync(fd); syncParent(filename);
     const f = makeFence('new-ledger', 0, digest('[]')); writeNewFence(filename, f);

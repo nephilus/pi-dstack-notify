@@ -5,7 +5,7 @@ export interface ProjectConfig {
   project_path: string; enabled: boolean; profile_path: string; ledger_path: string;
   policy: 'explicit_attention' | 'notification_product'; inbox_base_url: string;
 }
-export interface Configuration { enabled: boolean; projects: ProjectConfig[]; fingerprint: string }
+export interface Configuration { enabled: boolean; projects: ProjectConfig[]; fingerprint: string; clef_config_path?: string }
 export function canonicalPath(value: unknown, exists = true): string {
   if (typeof value !== 'string' || !path.isAbsolute(value) || value.startsWith('//')
       || value.length > 4096 || /[\x00-\x1f\x7f\\]/.test(value) || path.normalize(value) !== value) held();
@@ -45,7 +45,9 @@ export function pinnedBase(value: unknown): string {
 export function loadConfiguration(filename?: string | null): Configuration {
   if (filename == null) return { enabled: false, projects: [], fingerprint: '' };
   const bytes = privateBytes(filename); const doc = strictJson(utf8(bytes));
-  exact(doc, ['version', 'enabled', 'projects']);
+  const hasClef = Object.hasOwn(doc, 'clef_config_path');
+  exact(doc, hasClef ? ['version', 'enabled', 'projects', 'clef_config_path'] : ['version', 'enabled', 'projects']);
+  if (hasClef) canonicalPath(doc.clef_config_path, false);
   if (doc.version !== 1 || typeof doc.enabled !== 'boolean' || !Array.isArray(doc.projects) || doc.projects.length > 128) held();
   const roots = new Set<string>();
   for (const p of doc.projects) {
@@ -57,7 +59,8 @@ export function loadConfiguration(filename?: string | null): Configuration {
     if (typeof p.enabled !== 'boolean' || !['explicit_attention','notification_product'].includes(p.policy) || roots.has(p.project_path)) held();
     pinnedBase(p.inbox_base_url); roots.add(p.project_path);
   }
-  return { enabled: doc.enabled, projects: doc.projects, fingerprint: digest(bytes) };
+  return { enabled: doc.enabled, projects: doc.projects, fingerprint: digest(bytes),
+    ...(hasClef ? { clef_config_path: doc.clef_config_path as string } : {}) };
 }
 export function selectProject(config: Configuration, root: string): ProjectConfig {
   const project = config.projects.find(p => p.project_path === root && p.enabled);

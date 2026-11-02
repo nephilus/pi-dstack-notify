@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "base_url": "https://clef.example.invalid",
+  "key_file": "/absolute/private/clef.key",
+  "model": "example/model",
+  "expected_model": "example/model",
+  "timeout_seconds": 5
+}

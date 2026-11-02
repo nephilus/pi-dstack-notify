@@ -1,29 +1,11 @@
-# Installation and release boundaries
+# Installation is separate from setup and activation
 
-Optional installation is **not a prerequisite to shipping**. Publication, installation, explicit configuration/activation and legacy continuity are separate actions. This candidate performs no Pi installation or activation.
+Public release `2539167a0e23835fa96a508ea0122729039bad9e` is immutable and was installed exactly. Its first installed lifecycle harness failed before startup on a model-shape assumption; that failure is retained, not a source defect. One explicitly authorized corrected guarded installed-ROOT lifecycle run passed with zero guarded effects. A shared npm-log/cache-namespace preservation exception remains unresolved, not a full-cache-equivalence claim. None establishes ordinary-host/current-session tools, roles or live delivery. This NEW source candidate adds interfaces absent from that old pin. No installation/update/publication is performed here; do not apply new setup commands/clef_config_path to the old package.
 
-## Exact proposed destination
+When a new revision is independently validated and separately published, the supported optional Pi form is `pi install 'git:github.com/nephilus/pi-dstack-notify@NEW_REVIEWED_SHA'`. That placeholder is not an available ref or a command to execute now. Optional installation is not a shipping prerequisite. Root package selects only pi-extension/minimal.ts; deep-selecting index.ts is not supported activation. Package peers require a compatible Pi/TypeBox host and Node>=24 with builtin SQLite. Ordinary Git/package installation may involve dependency-manager/lifecycle/cache effects even though this manifest has no acquisition scripts; no network/script-free installation promise is made.
 
-The settled first product is `pi-dstack-notify`; future `pi-dstack-loop-tools` groups independently enabled reminders and bounded SAME-session continuation. Continuation must not require Inbox/Telegram/reminders. No extraction is implemented here.
+For NEW-revision operator administration, explicitly locate a checkout containing package.json and pi-extension/admin.ts, then run `node ./pi-extension/admin.ts --help` from that root. Alternatively use a measured installer-provided root, never a guessed cache directory or imaginary global executable. No Pi installation is necessary to inspect an explicitly acquired source checkout; any acquisition has separate network authority. See [README](../README.md) for the actual packaged commands.
 
-The authenticated metadata request for `nephilus/pi-dstack-notify` at 2026-10-31T20:40:47Z returned HTTP 404: no accessible repository, **not guaranteed name availability**. Actual owner, visibility, size and emptiness are unknown. No loop name query or repository creation/upload occurred in this export task.
+Ordinary Pi starts select the package-owned ~/.pi-dstack-notify/config.json only in this new revision. Scaffold exclusively creates disabled JSON; install/startup never provisions or enables. Configuration activation, native availability/grants/compatibility, fresh-versus-existing history, destination authority and actual end-to-end verification are distinct. No roles/prompts/grants/settings or user runtime are modified. dctlab-owned role trial and loop-tools are separate, notification-inactive scopes; no loop extraction occurs here.
 
-After independent clearance of the exact final files, licenses, tests and one parentless sanitized history, conditional owner release authorization permits ordinary non-force publication to that exact new destination. A destination created before clearance must remain empty and private. A name/account conflict or uncertain upload outcome stops the affected action; no namespace retry, old-repository rename/delete, force operation, main merge or npm publication is proposed. A later unauthenticated ordinary clone must match the reviewed commit and complete exported-file set before final release claims.
-
-## Conditional Pi Git command
-
-Only after publication and verification, substitute the reviewed **new** sanitized root commit SHA from the external release packet:
-
-```sh
-pi install 'git:github.com/nephilus/pi-dstack-notify@NEW_FINAL_EXPORT_SHA'
-```
-
-This is a conditional user command, not an operation run by this export task. Never use the original source-history SHA or an unreviewed branch ref. The Git-root manifest selects only `./pi-extension/minimal.ts`. Installing an internal source directory or manually selecting index.ts is not the supported root route.
-
-Bound Git/network access, credential use if any, package-manager invocation, lifecycle/dependency scripts and cache writes separately. A Git-root package.json can trigger dependency-manager activity even without runtime dependencies/build scripts; installation is not promised network- or script-free. Use a compatible Node/Pi host. The producer root smoke uses existing public SDK modules without dependency acquisition and is not a Git-install measurement.
-
-## Configuration and continuity
-
-Installation alone does not select private configuration, initialize or migrate a ledger, enable a native Inbox provider, send a notification or schedule/model-drive anything. See [CONFIGURATION.md](CONFIGURATION.md). Configure once using persistent private operator-owned files and explicitly selected notification-config; no environment fallback or tool-supplied destination. A role-configuration trial is separate and does not authorize notification activation. Notifications remain disabled absent separate activation.
-
-Existing operational workflows and source history remain untouched; installing this candidate is not proof of production replacement or continuity.
+Uninstalling or rolling back code is not permission to delete config/profile/keys, DB/WAL/SHM/fences/locks or terminal uncertainty. Preserve authoritative delivery/classification history. No reset, restore, downgrade, force, old-repository rewrite, npm publication or automatic configuration migration is offered.

@@ -159,6 +159,10 @@ export function createNotificationService(options: NotificationServiceOptions): 
         const sendCallback = context.inboxSend.bind(context);
         const readCallback = context.inboxRead.bind(context);
         const config = loadConfiguration(configPath), project = selectProject(config, observed.project_path);
+        // One immutable selector for this operation; no precedence or mid-flight reselection.
+        if (config.clef_config_path !== undefined && clefConfigPath !== undefined) held();
+        if (mode.testOnly && config.clef_config_path !== undefined) held();
+        const operationClefConfigPath = config.clef_config_path ?? clefConfigPath;
         const profile = loadProfile(project.profile_path);
         const profileCredentials = profileSecrets(profile);
         // A validation failure can collide with a credential-shaped reason.
@@ -169,7 +173,7 @@ export function createNotificationService(options: NotificationServiceOptions): 
         // Private Clef reads happen only after deterministic admission and enabled scope.
         // Missing/invalid private config becomes unavailable, never a public selector.
         let clefConfig: ReturnType<typeof loadClefConfiguration> = null;
-        if (fyip && !mode.testOnly) { try { clefConfig = loadClefConfiguration(clefConfigPath); } catch { /* admitted unavailable */ } }
+        if (fyip && !mode.testOnly) { try { clefConfig = loadClefConfiguration(operationClefConfigPath); } catch { /* admitted unavailable */ } }
         const secrets = [...secretsFromHost, ...profileCredentials, ...(clefConfig ? [clefConfig.key] : [])];
         receiptSecrets = secrets;
         // Unsupported actual OWNER decoding cannot publish a supposedly tracked
@@ -229,7 +233,7 @@ export function createNotificationService(options: NotificationServiceOptions): 
               ledger?.checkFence();
               const current = loadConfiguration(configPath), selected = selectProject(current,observed.project_path);
               if (current.fingerprint !== config.fingerprint || loadProfile(selected.profile_path).fingerprint !== profile.fingerprint) held();
-              if (initialConfigFingerprint && loadClefConfiguration(clefConfigPath)?.fingerprint !== initialConfigFingerprint) held();
+              if (initialConfigFingerprint && loadClefConfiguration(operationClefConfigPath)?.fingerprint !== initialConfigFingerprint) held();
             };
             check();
             const host = observation(await abortable(Promise.resolve(hostCallback()),signal));
@@ -287,7 +291,7 @@ export function createNotificationService(options: NotificationServiceOptions): 
           const current = loadConfiguration(configPath), selected = selectProject(current, observed.project_path);
           const currentProfile = loadProfile(selected.profile_path);
           if (current.fingerprint !== config.fingerprint || currentProfile.fingerprint !== profile.fingerprint) held();
-          if (clefConfig && loadClefConfiguration(clefConfigPath)?.fingerprint !== clefConfig.fingerprint) held();
+          if (clefConfig && loadClefConfiguration(operationClefConfigPath)?.fingerprint !== clefConfig.fingerprint) held();
           if (signal.aborted) held();
         };
         const hostCheck = async (): Promise<void> => {

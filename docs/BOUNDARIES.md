@@ -20,7 +20,7 @@ Registration separation is cheap; actual core/storage/API separation is not done
 
 Tool arguments are assertions, not permission, canonical identity, verified revision or destination override. Native SEND/READ evidence and persistent policy checks remain mandatory. An answer or delivery receipt is not owner approval or a wake request. Unknown side effects are not blindly retried.
 
-Absent configuration must be measured inert on final export bytes. A configured operation is not the same thing as registration or a no-send SDK smoke. Transport operation deadlines are not automatic reminder scheduling.
+Missing or disabled default configuration must be measured inert on final candidate bytes, as must explicit selection at startup (selection is not an operation). A configured operation is not the same thing as registration or a no-send SDK smoke. Transport operation deadlines are not automatic reminder scheduling.
 
 ## Validation contract
 
@@ -28,6 +28,6 @@ Fresh evidence must cover the final allowlist, runtime/import/test/compiler inpu
 
 Strict whole-source no-emit checking must include every selected runtime/test file and retained frozen fixtures, with portable published configs and machine-specific resolution outside the tree. No acquisition is authorized to fill missing tooling.
 
-An actual isolated public SDK **ROOT package** smoke must use final exported bytes/new local SHA, not a direct entry bypass or an earlier original-source run: disposable HOME/cwd/agent directory/auth location, externally scrubbed nonempty offline environment, untrusted in-memory settings/session, no ambient resources, pre-init denial counters, explicit offline ModelRuntime, noTools all, no prompt/tool invocation, exactly two registrations, absent configuration flag, empty resource/custom-provider queues, one start/shutdown and runtime disposal. Record actual Node/Pi/TypeBox and genuine builtin SQLite loading separately from zero DB-open attempts; retain errors/denials/V8 coverage and teardown/preservation evidence. In-process guards are not an OS sandbox.
+An actual isolated public SDK **ROOT package** smoke must use final candidate bytes/new local SHA (direct public2539167 parent, not original private ancestry), not a direct entry bypass or an earlier original-source run: disposable HOME/cwd/agent directory/auth location, externally scrubbed nonempty offline environment, untrusted in-memory settings/session, no ambient resources, pre-init denial counters, explicit offline ModelRuntime, noTools all, no prompt/tool invocation, exactly two registrations, missing/disabled package-default and explicit-selection scenarios after flag binding, empty resource/custom-provider queues, one start/shutdown and runtime disposal. Record actual Node/Pi/TypeBox and genuine builtin SQLite loading separately from zero DB-open attempts; retain errors/denials/V8 coverage and teardown/preservation evidence. In-process guards are not an OS sandbox.
 
 Final-candidate producer evidence is retained outside the package. Independent clearance is a separate gate and is not claimed by these documents. Applicable Unicode data attribution and the complete permission notice are included in THIRD-PARTY-NOTICES.md.

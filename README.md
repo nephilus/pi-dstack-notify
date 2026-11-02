@@ -1,47 +1,47 @@
 # pi-dstack-notify
 
-> Release candidate: independent privacy/package/code/provenance review is required before publication. This package is inert without explicitly selected private configuration.
+Deliberate attention and curated FYIP notifications for Pi: **Inbox SEND → durable canonical correlation → independent full READ verification → Telegram**. The package ROOT registers only `notification_publish` and `notification_publish_fyip`, both model-only and sequential. One existing core owns policy, classification and deduplication. No automatic loop/reminder controller or production OWNER workflow is enabled or needed for these two tools.
 
-Deliberate attention and curated FYIP notifications for Pi, backed by one shared TypeScript notification core and its existing fail-closed policy. Settled product scope is exactly **pi-dstack-notify** and future **pi-dstack-loop-tools**, not three packages. Neither is a general scheduler. Notify has no automatic reminder/poke controllers. Future loop-tools groups reminders and bounded SAME-session continuation as independently enabled capabilities: reminders may use notify delivery; continuation must not require Inbox, Telegram or reminders. No loop extraction is implemented here.
+**This new source candidate adds setup interfaces; it is not a live-ready installation claim.** The currently executing Inbox server/version and Pi wrapper's lossless native argument/envelope mapping are unestablished. Retained source supports the expected decoder contract, not current-native compatibility. No probe/send is required or performed by setup. See [boundaries](docs/BOUNDARIES.md).
 
-## Default package scope
+## Setup from an explicitly located new-revision package root
 
-The ROOT Pi manifest selects only `./pi-extension/minimal.ts`:
+Use an explicit checkout of the reviewed new revision, or an actual package path measured by your installer; `cd` to that directory containing package.json. Do not guess a Pi cache path. Node **>=24** is required. These are operator interfaces, not instructions already executed on your machine.
 
-| Route | Default ROOT package |
-| --- | --- |
-| `notification_publish` | Deliberate explicit-attention submission |
-| `notification_publish_fyip` | Explicit curated FYIP candidate submission |
-| OWNER requests | Unavailable |
-| Reminder ticks/automatic reminders | Unavailable |
-| Advisory poke/automatic continuation | Unavailable |
+1. **Create a disabled configuration**, with no credentials, project activation or ledger creation:
+   ```sh
+   node ./pi-extension/admin.ts --help
+   node ./pi-extension/admin.ts scaffold
+   ```
+   This exclusively creates `~/.pi-dstack-notify/config.json` (0600) in its private directory (0700), containing `{"version":1,"enabled":false,"projects":[]}`. It never overwrites/repairs. Alternatively `scaffold --config /absolute/private/config.json` requires an existing safe private parent.
+2. **Prepare private operator configuration** using [CONFIGURATION](docs/CONFIGURATION.md) and [safe templates](examples/). Keep disabled until separately ready. Exact canonical working directory, both enable bits, stable identities, private profile, pinned Inbox base and a validated ledger are required. Telegram uses private TOML; optional Clef uses private JSON/key files. No credential ENV names or Pi model-provider fallback exist.
+   ```sh
+   node ./pi-extension/admin.ts validate --config /absolute/private/config.json
+   ```
+   Validation is structural/private-file validation, not transport/destination readiness.
+3. **Preserve history; choose existing versus genuinely fresh storage externally.** Inspect an existing v2/v3 ledger with:
+   ```sh
+   node ./pi-extension/admin.ts status --ledger /absolute/private/ledger.sqlite
+   ```
+   Only for genuinely fresh history, when ALL four assertions are already externally true:
+   ```sh
+   node ./pi-extension/admin.ts provision-fresh --ledger /absolute/private/ledger.sqlite --dispatch-disabled --all-old-writers-quiesced --wal-consistent-backup-verified --no-prior-history
+   ```
+   The utility does NOT prove those assertions. Missing storage proves no history fact. It calls existing v3 initialization once; refuses existing DB/WAL/SHM/fence/lock; never resets/upgrades/restores/retries/deletes locks. Initialization publishes the existing **active fence**; the dispatch-disabled assertion is a prerequisite, not permanent fence state or configuration activation. Failure preserves artifacts; stop rather than retry. Status is read-only SQLite/schema/fence inspection, with possible WAL/SHM effects, not send permission or global dedupe-policy changes.
+4. **Normal Pi starts select the persistent package default** `~/.pi-dstack-notify/config.json`; no repeating flag or Pi settings trick. An explicit override remains:
+   ```sh
+   pi --notification-config /absolute/private/config.json
+   ```
+   Only undefined flag lookup selects the default. Invalid explicit selection stays unavailable. Selection is captured once after binding; startup reads/creates no private config, profile, key or DB. Actual operations perform strict checks and byte/lifetime rechecks. Restart deliberately to change selection. Missing/disabled default stays inert. Configuration activation, grants, native compatibility and actual delivery verification remain separate operator actions—not effects of install/scaffold/status.
 
-Both exposed tools are model-only and sequential. Their fixed native reach is `mcp__plannotator_inbox__send_message` and `mcp__plannotator_inbox__read_thread`. Tool registration is not permission to deliver, approve decisions, schedule work, retry uncertain sends or wake an agent. The normal MCP host must provide the native operations when separately authorized; this package does not install a native Inbox provider.
+## Existing release versus this candidate
 
-Shared Owner/reminder/poke modules remain only where the minimal entry imports their shared factory/types/core. The ROOT entry does not construct their controllers, start their timers, register their tools or install a model automation route. Regression tests of internal shared code do not make those routes public features. No inner FULL activation manifest is included.
+Public `2539167a0e23835fa96a508ea0122729039bad9e` remains unchanged: inert-installable, scoped source/offline validated, **no** packaged admin CLI, persistent default or notification-JSON Clef selector. Its startup flag is not remembered by Pi. Do not apply this candidate's new key/commands to that release. Exact old-pin installation and one explicitly authorized corrected guarded installed-ROOT SDK startup/shutdown/disposal passed with zero guarded effects. The original harness model-shape failure remains a failure, not a source defect. A shared npm-log/cache-namespace preservation exception remains unresolved; this source work neither investigates nor repairs it. Current-session hotload, role grants and configured end-to-end readiness are not established here. This source candidate does not update an installation or public repository.
 
-## Inert by default; persistent private configuration
+Fixed native reach is `mcp__plannotator_inbox__send_message` and `mcp__plannotator_inbox__read_thread`: declaration is **not** a grant, MCP installation or permission bypass. These dependencies must be available in `ctx.tools`; model-only publishers cannot be called via codemode/another tool's executeTool. Telegram/Clef use direct HTTPS, not nested MCP sends. No `dry_run`, destination/config/provider override or raw sender is a public tool argument.
 
-With no `notification-config` flag, startup remains inert: no notification service, private profile/ledger or delivery is needed. The string flag must name an explicit canonical absolute private configuration path. The adapter resolves its flag once, after host binding at startup or the first explicit operation. Missing, relative, non-string or unreadable flag access stays disabled for that adapter instance; later rebinding is not an activation mechanism. Restart deliberately after changing configuration selection.
+`unknown` is terminal uncertainty, **not retry permission**; `sent` is not approval or verified recipient reachability. FYIP NO quietly suppresses; admitted unavailable/error/invalid/uncertain classifier outcomes may use labeled fallbacks after delivery gates. [Synthetic arguments](docs/SYNTHETIC-EXAMPLES.md), [configuration](docs/CONFIGURATION.md), [scope/evidence](docs/PROVENANCE.md), [installation boundaries](docs/INSTALLATION.md).
 
-An explicitly configured operation still requires enabled matching project policy, a private profile, an existing validated ledger and exact native evidence. Configuration is persistent operator-owned data outside the package—not an environment fallback, destination passed by the model or disposable install artifact. See [configuration](docs/CONFIGURATION.md) and [boundaries](docs/BOUNDARIES.md). The documentation samples are synthetic and intentionally do not provision a working destination.
+Declared Node baseline is >=24; offline checks target Node24.22.1 / Pi1.4.0 / real host TypeBox1.3.27 / TS5.8.3. External exact-byte candidate evidence records measured results, not configured production delivery. In-process guards are not an OS sandbox. Optional installation is not a shipping prerequisite.
 
-## Compatibility and evidence status
-
-| Component | Declared baseline | Final sanitized export measurement |
-| --- | --- | --- |
-| Node.js | `>=24.0.0`, builtin `node:sqlite` required | 24.22.1 (isolated offline validation) |
-| Pi | Host peer; planned validation against public SDK 1.4.0 | 1.4.0 (public SDK, package-root load) |
-| TypeBox | Host `typebox` peer | 1.3.27 (real host module) |
-
-Final-candidate offline validation uses TypeScript 5.8.3, strict whole-source no-emit checks, unit and actual-entry/core tests with closed fakes, and an isolated actual SDK **package-ROOT** no-send load/start/shutdown/dispose measurement. Exact final-byte hashes, commands, test counts and runtime inputs are recorded in the external candidate packet. This is producer evidence, not independent clearance. No CLI/Git-install, configured delivery, network, live Inbox/Telegram or operational continuity proof is claimed.
-
-## Distribution proposal—not installation instructions for a published package
-
-Settled repository names: `pi-dstack-notify` and `pi-dstack-loop-tools`; notify is the first export, loop-tools remains future scope. A bounded authenticated metadata request for `nephilus/pi-dstack-notify` at 2026-10-31T20:40:47Z returned HTTP 404: no accessible repository was found, **not guaranteed name availability**. Actual owner, visibility, size and emptiness remain unknown. No loop repository was queried. No repository creation or upload was performed by this export task.
-
-See the conditional [installation instructions](docs/INSTALLATION.md). Only a new sanitized **single parentless** publication history may be proposed, to the exact reviewed destination after independent clearance. Original ancestry must never be uploaded. Optional user installation is separate and **not a prerequisite to shipping**. Shipping, configuration/activation and legacy continuity are distinct decisions.
-
-## Roadmap and attribution
-
-[Loop-tools roadmap](docs/ROADMAP.md) describes independently enabled reminder/continuation capabilities in the settled second product, not a general scheduler. Required MIT attribution is preserved verbatim in `LICENSE`; the legal notice is not rebranded. Unicode-derived mapping and approved-age data retain their original attribution and the complete applicable Unicode License v3 notice in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). See [provenance](docs/PROVENANCE.md).
+MIT attribution is preserved in [LICENSE](LICENSE); original Unicode ©2023/trademark and complete applicable notice are in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). Future `pi-dstack-loop-tools` remains separate, unimplemented scope; continuation must not require notifications. Necessary dormant shared core/v3 safeguards are retained honestly, not described as decoupled.

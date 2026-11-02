@@ -160,7 +160,7 @@ test('configured regular-file project root rejects before claim or native effect
   h.host.cwd = h.host.managerCwd = fileRoot;
   const result = await h.invoke();
   assert.equal(result.isError, true);
-  assert.equal((result.details as { code: string }).code, 'internal_error');
+  assert.equal((result.details as { code: string }).code, 'configuration_unavailable');
   assert.equal(h.rows('deliveries').length, 0);
   assert.equal(h.dispatches.length, 0); assert.equal(h.telegramHttpClient.messages.length, 0);
 });
