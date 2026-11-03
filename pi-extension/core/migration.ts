@@ -1,6 +1,9 @@
-/** Explicit administrative primitives; the packaged CLI exposes fresh-v3 initialization only.
+/** Explicit administrative primitives; CLI exposes fresh-v3 and bounded opaque continuation.
  * Never called by startup/publication; no live discovery, automatic migration or restore. */
 import * as fs from 'node:fs';
+import { prepareAdoption, validateAdoption, admitAdoption } from './adoption.ts';
+import type { AdoptionEvidence, AdoptionContext } from './adoption.ts';
+import type { DeliveryIdentity } from './types.ts';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import { privateBytes, utf8 } from './config.ts';
@@ -15,7 +18,8 @@ export interface CutoverAssertions {
 }
 export interface NewLedgerAssertions extends CutoverAssertions { noPriorHistory: true }
 interface Fence {
-  version: 2; cutover_id: string; kind: 'new-ledger' | 'v1-migration'; created_at: number;
+  version: 2; cutover_id: string; kind: 'new-ledger' | 'v1-migration' | 'opaque-continuation'; created_at: number;
+  adoption?: AdoptionEvidence;
   original_count: number; legacy_identity_sha256: string; assertions: {
     dispatch_disabled: true; all_old_writers_quiesced: true;
     wal_consistent_backup_verified: true; no_prior_history: boolean;
@@ -76,7 +80,7 @@ function manifest(f: Omit<Fence, 'manifest_sha256'> | Fence): string {
       dispatch_disabled: f.assertions.dispatch_disabled, all_old_writers_quiesced: f.assertions.all_old_writers_quiesced,
       wal_consistent_backup_verified: f.assertions.wal_consistent_backup_verified,
       no_prior_history: f.assertions.no_prior_history,
-    } }));
+    }, ...(f.kind === 'opaque-continuation' ? { adoption: f.adoption } : {}) }));
 }
 function identityDigest(db: DatabaseSync, table: 'deliveries' | 'canonical_associations'): string {
   const rows = db.prepare('SELECT profile_id,destination_id,decision_key,event_revision,purpose FROM ' + table
@@ -94,10 +98,11 @@ function makeFence(kind: Fence['kind'], count: number, identities: string): Fenc
 }
 function readFence(filename: string): Fence {
   const f = strictJson(utf8(privateBytes(fencePath(filename))));
-  exact(f, ['version', 'cutover_id', 'kind', 'created_at', 'original_count', 'legacy_identity_sha256', 'assertions', 'state', 'manifest_sha256']);
+  exact(f, ['version', 'cutover_id', 'kind', 'created_at', 'original_count', 'legacy_identity_sha256', 'assertions', 'state', 'manifest_sha256',
+    ...(f.kind === 'opaque-continuation' ? ['adoption'] : [])]);
   exact(f.assertions, ['dispatch_disabled', 'all_old_writers_quiesced', 'wal_consistent_backup_verified', 'no_prior_history']);
   if (f.version !== 2 || typeof f.cutover_id !== 'string' || !/^[0-9a-f]{32}$(?![\s\S])/.test(f.cutover_id)
-      || !['new-ledger', 'v1-migration'].includes(f.kind) || !Number.isSafeInteger(f.created_at) || f.created_at < 0
+      || !['new-ledger', 'v1-migration', 'opaque-continuation'].includes(f.kind) || !Number.isSafeInteger(f.created_at) || f.created_at < 0
       || !Number.isSafeInteger(f.original_count) || f.original_count < 0
       || typeof f.legacy_identity_sha256 !== 'string' || !/^[0-9a-f]{64}$(?![\s\S])/.test(f.legacy_identity_sha256)
       || !['prepared', 'active', 'dispatch-disabled'].includes(f.state)
@@ -138,6 +143,40 @@ function validateFence(db: DatabaseSync, filename: string, allowDisabledEvidence
       || rows[0].imported_at !== f.created_at) held();
   const count = Number((db.prepare('SELECT COUNT(*) AS n FROM canonical_associations WHERE legacy_unmapped=1').get() as any).n);
   if (count !== f.original_count || identityDigest(db, 'canonical_associations') !== f.legacy_identity_sha256) held();
+  if (f.kind === 'opaque-continuation') validateAdoption(f.adoption!);
+}
+/** Shared admission boundary. The fence is DB-bound and revalidated before claims. */
+export function validateContinuationClaim(db: DatabaseSync, filename: string, id: DeliveryIdentity, context?: AdoptionContext): void {
+  validateDispatchFence(db,filename);
+  const f = readFence(filename);
+  if (f.kind === 'opaque-continuation') admitAdoption(f.adoption!,id,context);
+}
+/** Distinct CONTINUE initializer. Never asserts fresh/noPriorHistory. Opaque
+ * external counts/digests live ONLY in adoption, not canonical row semantics. */
+export function adoptOpaqueHistoryV3(filename: string, specPath: string, assertions: CutoverAssertions): void {
+  return administer(filename,'cutover',() => {
+    assertPrerequisites(assertions); privateParent(filename);
+    for (const file of [filename,fencePath(filename)]) {
+      try { fs.lstatSync(file); held(); } catch (e: any) { if (e.code !== 'ENOENT') throw e; }
+    }
+    assertFreshSidecarsAbsent(filename);
+    const adoption = prepareAdoption(filename,specPath);
+    const fd = fs.openSync(filename,fs.constants.O_RDWR | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW,0o600);
+    try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); } syncParent(filename);
+    const f = makeFence('opaque-continuation',0,digest('[]'));
+    f.adoption = adoption; f.manifest_sha256 = manifest(f); writeNewFence(filename,f);
+    assertFreshSidecarsAbsent(filename);
+    const db = existingDatabase(filename);
+    try {
+      transaction(db,() => {
+        if (versionOf(db) !== 0 || db.prepare('SELECT 1 FROM sqlite_master').get()) held();
+        schema.forEach(sql => db.exec(sql)); db.exec(canonicalSchema); marker(db,f);
+        stage3Schema.forEach(sql => db.exec(sql)); markV3(db); db.exec('PRAGMA user_version=3'); validateSchema(db,3);
+        validateAdoption(adoption);
+      });
+      activateFence(filename,f);
+    } finally { db.close(); }
+  });
 }
 /** Explicit first provisioning ONLY: absence is not evidence of no old history.
  * The caller's noPriorHistory assertion is an external operator prerequisite.
@@ -275,5 +314,6 @@ function activateFence(filename: string, expected: Fence): void {
   const current = readFence(filename);
   if (current.cutover_id !== expected.cutover_id || current.manifest_sha256 !== expected.manifest_sha256
       || current.state !== 'prepared') held();
+  if (current.kind === 'opaque-continuation') validateAdoption(current.adoption!);
   replaceFence(filename, { ...current, state: 'active' });
 }

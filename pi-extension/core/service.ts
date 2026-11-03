@@ -1,3 +1,4 @@
+import { AdoptionHeld } from './adoption.ts';
 import { runReminderTick } from './reminder-workflow.ts';
 import { createReminderPlanner } from './reminder-plan.ts';
 import { isTestOwnerEvidenceProvider } from './owner-evidence.ts';
@@ -300,7 +301,9 @@ export function createNotificationService(options: NotificationServiceOptions): 
         };
         guard(); ledger ??= new DeliveryLedger(project.ledger_path, clock, project.policy === 'notification_product' ? 3 : undefined);
         claim = owner ? ledger.reserveOwnerRequest(identity,{body,project_root:observed.project_path,
-          session_id:observed.session_id,...(args.review_link?{review_link:args.review_link}:{})}) : ledger.claim(identity);
+          session_id:observed.session_id,...(args.review_link?{review_link:args.review_link}:{})}) : ledger.claim(identity,{
+          text:args.text,project_root:observed.project_path,session_id:observed.session_id,inbox_base_url:project.inbox_base_url,profile_sha256:profile.fingerprint,
+          ...(args.review_link?{review_link:args.review_link}:{}) });
         safeReceipt(claim.receipt, secrets);
         const knownCanonical = ledger.canonicalFor(identity);
         if (knownCanonical) {
@@ -353,7 +356,7 @@ export function createNotificationService(options: NotificationServiceOptions): 
           }
           return finish(hold('publication_or_delivery_unknown_no_retry', true));
         }
-        return finish(hold(error instanceof LegacyMappingRequired ? 'legacy_history_unmapped'
+        return finish(hold(error instanceof AdoptionHeld ? error.message : error instanceof LegacyMappingRequired ? 'legacy_history_unmapped'
           : error instanceof OwnerCapacityHeld ? 'owner_capacity_held' : 'configured_admission_held'));
       } finally { try { ledger?.close(); } catch { /* Never expose filesystem/SQLite details. */ } active = false; }
   }

@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { defaultConfigurationPath } from './adapter/config-selection.ts';
 import { canonicalPath, loadConfiguration } from './core/config.ts';
 import { existingDatabase, privateParent, syncParent } from './core/storage.ts';
-import { initializeLedgerV3, validateDispatchFence, fencePath, administrationLockPath } from './core/migration.ts';
+import { adoptOpaqueHistoryV3, initializeLedgerV3, validateDispatchFence, fencePath, administrationLockPath } from './core/migration.ts';
 import { validateSchema, versionOf } from './core/schema.ts';
 
 const help = `Node >=24, from the explicitly located package root:
@@ -12,10 +12,14 @@ node ./pi-extension/admin.ts scaffold [--config /absolute/private/config.json]
 node ./pi-extension/admin.ts validate --config /absolute/private/config.json
 node ./pi-extension/admin.ts status --ledger /absolute/private/ledger.sqlite
 node ./pi-extension/admin.ts provision-fresh --ledger /absolute/private/ledger.sqlite --dispatch-disabled --all-old-writers-quiesced --wal-consistent-backup-verified --no-prior-history
+node ./pi-extension/admin.ts adopt-one-current-intent --ledger /absolute/private/ledger.sqlite --spec /absolute/private/operator-spec.json --dispatch-disabled --all-old-writers-quiesced --wal-consistent-backup-verified
+Adoption reuses the declared literal credential ENV, creates a private profile,
+archives exact opaque JSON bytes, and admits only the operator's ONE current item.
+See docs/CONTINUE-ONE-ITEM.md. It does NOT assert no prior history.
 Scaffold is DISABLED. Validate/status are not readiness or send permission.
 Status uses read-only SQLite; WAL/SHM filesystem effects are possible.
 Fresh init refuses -journal/-wal/-shm under the exclusive lock before SQLite use.
-All four provisioning assertions must be externally true; this utility proves none.
+All four FRESH assertions / three ADOPTION assertions must be externally true; this utility proves none.
 Missing files do not establish no history. No retry, repair, overwrite or migration.
 `;
 class ArgumentsError extends Error {}
@@ -24,7 +28,8 @@ function parse(args: string[]): { command: string; values: Map<string, string | 
   const command = args[0];
   const assertions = ['--dispatch-disabled', '--all-old-writers-quiesced', '--wal-consistent-backup-verified', '--no-prior-history'];
   const allowed: Record<string, string[]> = { scaffold: ['--config'], validate: ['--config'], status: ['--ledger'],
-    'provision-fresh': ['--ledger', ...assertions] };
+    'provision-fresh': ['--ledger', ...assertions],
+    'adopt-one-current-intent': ['--ledger','--spec',...assertions.slice(0,3)] };
   if (!Object.hasOwn(allowed, command ?? '')) throw new ArgumentsError();
   const values = new Map<string, string | true>();
   for (let i = 1; i < args.length; i++) {
@@ -39,7 +44,8 @@ function parse(args: string[]): { command: string; values: Map<string, string | 
   }
   if ((command === 'validate' && !values.has('--config'))
       || (['status', 'provision-fresh'].includes(command) && !values.has('--ledger'))
-      || (command === 'provision-fresh' && assertions.some(key => !values.has(key)))) throw new ArgumentsError();
+      || (command === 'provision-fresh' && assertions.some(key => !values.has(key)))
+      || (command === 'adopt-one-current-intent' && ['--ledger','--spec',...assertions.slice(0,3)].some(key => !values.has(key)))) throw new ArgumentsError();
   return { command, values };
 }
 function absent(filename: string): void {
@@ -74,6 +80,11 @@ function run(): void {
   }
   const filename = values.get('--ledger') as string;
   canonicalPath(filename, false); privateParent(filename);
+  if (command === 'adopt-one-current-intent') {
+    adoptOpaqueHistoryV3(filename,values.get('--spec') as string,{dispatchDisabled:true,allOldWritersQuiesced:true,walConsistentBackupVerified:true});
+    process.stdout.write(JSON.stringify({status:'adopted_one_current_intent_v3',fence:'active',config_enabled:'unchanged',
+      historical_unknown_attempts:'unavailable',assertions:'operator_declared_not_proven',readiness:'not_evaluated'}) + '\n'); return;
+  }
   if (command === 'provision-fresh') {
     for (const file of [filename, filename + '-journal', filename + '-wal', filename + '-shm', fencePath(filename), administrationLockPath(filename)]) absent(file);
     // These are operator declarations, NEVER facts inferred from absence or proven here.

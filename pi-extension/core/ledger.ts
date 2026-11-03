@@ -6,7 +6,8 @@ import { ownerObservationData } from './owner-control.ts';
 import type { OwnerObservation, StoredOwnerOriginal } from './owner-control.ts';
 import type { CanonicalTarget, ReviewLink } from './types.ts';
 import { validateSchema, versionOf } from './schema.ts';
-import { validateDispatchFence } from './migration.ts';
+import { validateDispatchFence, validateContinuationClaim } from './migration.ts';
+import type { AdoptionContext } from './adoption.ts';
 import { existingDatabase, transaction } from './storage.ts';
 import type { DeliveryIdentity, DeliveryReceipt, CanonicalSendEvidence, CanonicalRequestCorrelation } from './types.ts';
 export { schema } from './schema.ts';
@@ -75,10 +76,10 @@ export class DeliveryLedger {
     const row = this.#db.prepare('SELECT state,claim_id,created_at,updated_at,confirmed_at,confirmation_ref,source,migration_id FROM deliveries WHERE ' + where).get(...tuple(id));
     return row ? { identity: { ...id }, ...row } as unknown as DeliveryReceipt : null;
   }
-  claim(id: DeliveryIdentity): Claim {
+  claim(id: DeliveryIdentity, context?: AdoptionContext): Claim {
     validateIdentity(id);
     return this.transaction(() => {
-      this.checkFence();
+      this.checkFence();validateContinuationClaim(this.#db,this.#filename,id,context);
       const now = this.now(); let receipt = this.inspect(id);
       if (!receipt) {
         if (this.schemaVersion() === 3 && id.purpose === 'reminder') held();
@@ -108,7 +109,8 @@ export class DeliveryLedger {
     testOwnerIdentity(id);safeBody(original.body,[],original.review_link);
     if(this.schemaVersion()!==3)held();
     return this.transaction(()=>{
-      this.checkFence();const existing=this.inspect(id),at=this.v3Now(),now=Math.floor(at);
+      this.checkFence();validateContinuationClaim(this.#db,this.#filename,id);
+      const existing=this.inspect(id),at=this.v3Now(),now=Math.floor(at);
       if(existing){
         if(['sent','duplicate'].includes(existing.state))return {action:'suppressed',receipt:existing};
         if(existing.state==='in_flight')this.#db.prepare("UPDATE deliveries SET state='delivery_unknown',updated_at=? WHERE "+where).run(now,...tuple(id));
@@ -230,7 +232,7 @@ export class DeliveryLedger {
     testOwnerIdentity(id);const identity=reminderDeliveryIdentity(id,slot);
     if(!/^[A-Za-z0-9._-]{1,80}$(?![\s\S])/.test(operationId))held();
     return this.transaction(()=>{
-      this.checkFence();this.applyOwnerControlTx(id,observation);
+      this.checkFence();validateContinuationClaim(this.#db,this.#filename,identity);this.applyOwnerControlTx(id,observation);
       const original=this.storedOwnerOriginal(id);if(!original)held();this.ownerScopeGuard({...id,project_root:original.target.project_root});
       const status=this.ownerReminderState(id);if(status!=='active')return {action:status};
       const data=ownerObservationData(observation);if(!['unanswered','snooze'].includes(data.status))held();
@@ -279,7 +281,7 @@ export class DeliveryLedger {
     if (id.purpose !== 'fyip' || this.schemaVersion() !== 3
         || Object.values(fingerprints).some(v => !/^[0-9a-f]{64}$(?![\s\S])/.test(v))) held();
     return this.transaction(() => {
-      this.checkFence();
+      this.checkFence();validateContinuationClaim(this.#db,this.#filename,id);
       const row = this.#db.prepare('SELECT * FROM fyip_decisions WHERE ' + where).get(...tuple(id));
       if (row) return { action: row.state === 'decided' ? 'decided' : 'held', claim_id: String(row.decision_claim_id),
         status: row.classification_status as string | null, choice: row.choice as 'yes'|'no'|null,

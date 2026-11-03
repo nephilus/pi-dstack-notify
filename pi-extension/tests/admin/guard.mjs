@@ -10,17 +10,18 @@ require('node:net').Socket.prototype.connect=deny('socket');globalThis.fetch=den
 const fault=process.env.NOTIFY_ADMIN_TEST_FAULT,target=process.env.NOTIFY_ADMIN_TEST_TARGET;
 const originalReadFileSync=fs.readFileSync,originalWriteFileSync=fs.writeFileSync;
 let lockCreated=false,sidecarInjected=false,activeFencePublished=false,createdDatabaseFd=-1;
-const activeFenceDirectoryFds=new Set();
+const activeFenceDirectoryFds=new Set(),partialArtifactFds=new Set();
 const sqlite=require('node:sqlite'),NativeDatabaseSync=sqlite.DatabaseSync;
 sqlite.DatabaseSync=new Proxy(NativeDatabaseSync,{construct(targetClass,args,newTarget){sqliteOpens.push({filename:String(args[0]),options:args[1]??null});return Reflect.construct(targetClass,args,newTarget);}});
 const originalMkdirSync=fs.mkdirSync;
 fs.mkdirSync=function(filename,...args){const result=originalMkdirSync.call(this,filename,...args);if(target&&String(filename)===target+'.cutover-v2.lock'){lockCreated=true;faultEvents.push({stage:'exclusive_admin_lock_created'});}return result;};
 const originalOpenSync=fs.openSync;
-fs.openSync=function(filename,...args){const fd=originalOpenSync.call(this,filename,...args);if(fault==='post-db-create'&&target&&String(filename)===target&&typeof args[0]==='number'&&(args[0]&fs.constants.O_CREAT)!==0&&(args[0]&fs.constants.O_EXCL)!==0){createdDatabaseFd=fd;faultEvents.push({stage:'exclusive_main_db_created',size:fs.fstatSync(fd).size});}if(fault==='post-active-fence-publication'&&activeFencePublished&&target&&String(filename)===path.dirname(target))activeFenceDirectoryFds.add(fd);return fd;};
+fs.openSync=function(filename,...args){const fd=originalOpenSync.call(this,filename,...args);if(target&&((fault==='post-profile-create'&&String(filename)===path.join(path.dirname(target),'profile.toml'))||(fault==='post-archive-create'&&String(filename)===target+'.opaque-json-v1.archive'))&&typeof args[0]==='number'&&(args[0]&fs.constants.O_EXCL)!==0)partialArtifactFds.add(fd);if(fault==='post-db-create'&&target&&String(filename)===target&&typeof args[0]==='number'&&(args[0]&fs.constants.O_CREAT)!==0&&(args[0]&fs.constants.O_EXCL)!==0){createdDatabaseFd=fd;faultEvents.push({stage:'exclusive_main_db_created',size:fs.fstatSync(fd).size});}if(fault==='post-active-fence-publication'&&activeFencePublished&&target&&String(filename)===path.dirname(target))activeFenceDirectoryFds.add(fd);return fd;};
 const originalRenameSync=fs.renameSync;
 fs.renameSync=function(from,to){const result=originalRenameSync.call(this,from,to);if(fault==='post-active-fence-publication'&&target&&String(to)===target+'.cutover-v2.json'){const state=JSON.parse(originalReadFileSync.call(fs,String(to),'utf8')).state;if(state==='active'){activeFencePublished=true;faultEvents.push({stage:'active_fence_published',state});}}return result;};
 const originalFsyncSync=fs.fsyncSync;
 fs.fsyncSync=function(fd){
+  if(partialArtifactFds.has(fd)){faultEvents.push({stage:'after_exclusive_adoption_artifact_creation_before_file_sync',fault});throw Error('synthetic-adoption-artifact-fsync-fault');}
   if(lockCreated&&fs.fstatSync(fd).isDirectory()){
     if(fault?.startsWith('introduce-')&&!sidecarInjected){const suffix=fault.slice('introduce'.length);const bytes=Buffer.from('synthetic sidecar introduced after CLI preflight: '+suffix);originalWriteFileSync.call(fs,target+suffix,bytes,{flag:'wx',mode:0o600});sidecarInjected=true;faultEvents.push({stage:'sidecar_injected_after_cli_preflight_before_locked_guard',suffix,sha256:crypto.createHash('sha256').update(bytes).digest('hex')});}
     if(fault==='fsync'){faultEvents.push({stage:'initial_admin_lock_parent_directory_sync'});throw Error('synthetic-fsync-fault');}
