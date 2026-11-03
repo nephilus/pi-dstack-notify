@@ -166,11 +166,15 @@ export class NotificationAdapter {
       this.fence(op);
       const outcome = await op.ctx.executeTool(name, args, { signal });
       this.fence(op);
-      if (!isObject(outcome) || outcome.isError !== false || !isObject(outcome.result))
+      if (!isObject(outcome) || outcome.isError !== false || !isObject(outcome.result)
+          || (outcome.result.isError !== undefined && outcome.result.isError !== false)
+          || !isObject(outcome.result.structuredContent))
         throw new AdapterError('callback_failed');
-      // Core validates native content, structuredContent, isError and canonical
-      // persistence; preserve the entire native result, never parse its prose.
-      return outcome.result as NativeMcpResult;
+      // Supported host contract: Pi 1.5 built-in MCP convertMcpResult places the
+      // COMPLETE native CallToolResult (minus _meta) in host structuredContent.
+      // Never fall back to the model-facing host result or parse its prose.
+      // Core independently validates native errors/content/canonical persistence.
+      return outcome.result.structuredContent as NativeMcpResult;
     } catch (error) {
       this.fence(op);
       throw error instanceof AdapterError ? error : new AdapterError('callback_failed');

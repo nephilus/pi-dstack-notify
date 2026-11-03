@@ -2,7 +2,7 @@
 
 Deliberate attention and curated FYIP notifications for Pi: **Inbox SEND → durable canonical correlation → independent full READ verification → Telegram**. The package ROOT registers only `notification_publish` and `notification_publish_fyip`, both model-only and sequential. One existing core owns policy, classification and deduplication. No automatic loop/reminder controller or production OWNER workflow is enabled or needed for these two tools.
 
-**This new source candidate adds setup interfaces; it is not a live-ready installation claim.** The currently executing Inbox server/version and Pi wrapper's lossless native argument/envelope mapping are unestablished. Retained source supports the expected decoder contract, not current-native compatibility. No probe/send is required or performed by setup. See [boundaries](docs/BOUNDARIES.md).
+**This unpublished fd0-child corrects the host adapter for the identified Pi 1.5.0 built-in MCP wrapper; it is not installed or live-ready.** Accepted installed fd0 remains inactive. On that named built-in path, fd0 reads the wrong result layer: SEND can take effect before decoding rejects it and before canonical association. Configuration/provisioning cannot fix that defect. This child extracts the complete native CallToolResult from host `result.structuredContent`, preserves outer/host/native error checks and leaves Core unchanged. The built-in wrapper omits native `_meta`. Layout checks do not establish registration provenance: the actual deployed wrapper/server identity remains unknown, and custom wrappers are outside this support claim. No new pin/update is requested. See [native contract](docs/NATIVE-COMPATIBILITY.md) and [short guide](docs/SETUP-QUICKSTART.md).
 
 ## Setup from an explicitly located new-revision package root
 
@@ -27,7 +27,7 @@ Use an explicit checkout of the reviewed new revision, or an actual package path
    ```sh
    node ./pi-extension/admin.ts provision-fresh --ledger /absolute/private/ledger.sqlite --dispatch-disabled --all-old-writers-quiesced --wal-consistent-backup-verified --no-prior-history
    ```
-   The utility does NOT prove those assertions. Missing storage proves no history fact. It calls existing v3 initialization once; refuses existing DB/WAL/SHM/fence/lock; never resets/upgrades/restores/retries/deletes locks. Initialization publishes the existing **active fence**; the dispatch-disabled assertion is a prerequisite, not permanent fence state or configuration activation. Failure preserves artifacts; stop rather than retry. Status is read-only SQLite/schema/fence inspection, with possible WAL/SHM effects, not send permission or global dedupe-policy changes.
+   The utility does NOT prove those assertions. Known legacy history is prior history and cannot satisfy `--no-prior-history`. Missing storage proves no history fact. It calls existing v3 initialization once; refuses existing DB/WAL/SHM/fence/lock; never resets/upgrades/restores/retries/deletes locks. Initialization publishes the existing **active fence**; the dispatch-disabled assertion is a prerequisite, not permanent fence state or configuration activation. Failure preserves artifacts; stop rather than retry. Status is read-only SQLite/schema/fence inspection, with possible WAL/SHM effects, not send permission or global dedupe-policy changes.
 4. **Normal Pi starts select the persistent package default** `~/.pi-dstack-notify/config.json`; no repeating flag or Pi settings trick. An explicit override remains:
    ```sh
    pi --notification-config /absolute/private/config.json

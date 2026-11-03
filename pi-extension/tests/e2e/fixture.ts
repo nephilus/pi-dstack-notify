@@ -20,6 +20,7 @@ import { initializeLedgerV2, initializeLedgerV3, migrateLedgerV1ToV2 } from '../
 import type { NativeMcpResult, NotificationReceipt, PublishArguments, TestTelegramHttpClient } from '../../core/types.ts';
 import type { HostContext } from '../../adapter/types.ts';
 import { READ, SEND } from '../../adapter/schema.ts';
+import { builtinMcpResult } from '../adapter/native-result.ts';
 
 const nativeFixture = JSON.parse(fs.readFileSync(new URL('../../fixtures/inbox-native.json', import.meta.url), 'utf8'));
 const profileFixture = fs.readFileSync(new URL('../../fixtures/shared-profile.toml', import.meta.url), 'utf8');
@@ -84,6 +85,7 @@ export function fixture(t: TestContext, outcome: TestTelegramOutcome = 'echo',
     sends: number; reads: number; observations: number; reuseMessage?: string;
     mutate?: (stage: 'send' | 'read', native: any) => void;
     onNative?: (stage: 'send' | 'read', native: any) => void | Promise<void>;
+    hostOutcome?: (stage: 'send' | 'read', outcome: any) => any;
   } = { sends: 0, reads: 0, observations: 0 };
   const ctx = {
     get cwd() { state.observations++; return host.cwd; },
@@ -137,7 +139,8 @@ export function fixture(t: TestContext, outcome: TestTelegramOutcome = 'echo',
       const stage = name === SEND ? 'send' : 'read';
       state.mutate?.(stage, result);
       await state.onNative?.(stage, result);
-      return { isError: false, result: result as NativeMcpResult };
+      const outcome = { isError: false, result: builtinMcpResult(result as NativeMcpResult) };
+      return state.hostOutcome ? state.hostOutcome(stage, outcome) : outcome;
     },
   };
   let tool!: RegisteredTool;

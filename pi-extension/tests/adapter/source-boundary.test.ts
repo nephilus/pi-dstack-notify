@@ -4,6 +4,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { NotificationAdapter } from '../../adapter/runtime.ts';
 import type { HostContext, NativeMcpResult, NotificationReceipt, PublicationContext } from '../../adapter/types.ts';
 import { READ, SEND } from '../../adapter/schema.ts';
+import { builtinMcpResult } from './native-result.ts';
 
 const root = new URL('../../', import.meta.url);
 
@@ -29,7 +30,7 @@ test('owned active runtime graph is TS only with one direct core import and no s
 test('concurrent native callbacks are denied and completed context is revoked', async () => {
   let calls = 0;
   let old!: PublicationContext;
-  const native: NativeMcpResult = { content: [{ type: 'text', text: 'Fixture' }], structuredContent: {} };
+  const native = builtinMcpResult({ content: [{ type: 'text', text: 'Fixture' }], structuredContent: {} });
   let release!: (value: { isError: false; result: NativeMcpResult }) => void;
   const raw = { cwd: '/project', sessionManager: { getCwd: () => '/project', getSessionId: () => 'session' },
     tools: [{ name: SEND }, { name: READ }],
@@ -61,7 +62,7 @@ test('concurrent native callbacks are denied and completed context is revoked', 
 
 test('cancelled A blocks B until native settlement; stale A callbacks cannot revoke active B', async () => {
   const mid = 'msg_' + '0'.repeat(26);
-  const native: NativeMcpResult = { content: [{ type: 'text', text: 'Fixture' }], structuredContent: {} };
+  const native = builtinMcpResult({ content: [{ type: 'text', text: 'Fixture' }], structuredContent: {} });
   const result: NotificationReceipt = { state: 'sent', admission: { status: 'admitted' },
     classification: { status: 'bypassed' }, delivery: { status: 'sent' } };
   let a!: PublicationContext, b!: PublicationContext;

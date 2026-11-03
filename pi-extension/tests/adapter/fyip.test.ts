@@ -26,7 +26,8 @@ function harness(spy: NotificationService['publishFYIP'] = async () => suppresse
     }) });
   const ctx = { cwd: '/project', sessionManager: { getCwd: () => '/project', getSessionId: () => 'session' },
     tools: [{ name: SEND }, { name: READ }], async executeTool(name: string, args: unknown) {
-      effects.push({ name, args }); return { isError: false, result: { content: [], structuredContent: {} } };
+      effects.push({ name, args }); return { isError: false, result: {
+        content: [], details: {}, structuredContent: { content: [], structuredContent: {} } } };
     } } as unknown as HostContext;
   return { adapter, ctx, effects, calls, get context() { return context; } };
 }

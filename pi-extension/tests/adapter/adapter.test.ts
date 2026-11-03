@@ -7,6 +7,7 @@ import { NotificationAdapter } from '../../adapter/runtime.ts';
 import { INPUT_SCHEMA, FYIP_INPUT_SCHEMA, KEY_PATTERN, READ, SEND } from '../../adapter/schema.ts';
 import { registerNotificationExtension } from '../../adapter/register.ts';
 import { deniedAttempts } from './deny-runtime.ts';
+import { builtinMcpResult } from './native-result.ts';
 
 // UNIT ONLY: injected core call-spy. No ledger/policy/configuration implementation.
 const receipt = (state: NotificationReceipt['state'] = 'sent'): NotificationReceipt => ({
@@ -31,7 +32,7 @@ function harness(spy: Spy = async () => receipt(), configPath: unknown = '/fixtu
     async executeTool(name: string, args: unknown, { signal }: { signal: AbortSignal }) {
       assert.equal(signal.aborted, false);
       effects.push({ name, args, signal });
-      return { isError: false, result: native };
+      return { isError: false, result: builtinMcpResult(native) };
     },
   };
   const factory = (options: { configPath: string }) => {
@@ -111,8 +112,9 @@ test('duplicate/held/unknown receipts are core decisions, not adapter policy', a
 test('fixed Inbox callbacks inject exact scope/provenance and preserve whole native object', async () => {
   const h = harness(async (_args, context) => {
     assert.deepEqual(await context.hostCheck(), { session_id: 'session-1', project_path: '/project' });
-    assert.equal(await context.inboxSend({ body: 'Safe final fixture', idempotency_key: 'fixture-key' }), native);
-    assert.equal(await context.inboxRead({ message_id: MID, thread_id: MID }), native);
+    const { _meta: ignored, ...expected } = native;
+    assert.deepEqual(await context.inboxSend({ body: 'Safe final fixture', idempotency_key: 'fixture-key' }), expected);
+    assert.deepEqual(await context.inboxRead({ message_id: MID, thread_id: MID }), expected);
     return receipt();
   });
   await h.adapter.publish(input(), h.ctx, signal());
@@ -170,7 +172,10 @@ test('outer errors/exceptions controlled; native isError remains for core valida
     });
     h.rawCtx.executeTool = async () => {
       if (mode === 'throw') throw new Error('PRIVATE-EXCEPTION');
-      return { isError: mode === 'outer', result: { ...native, isError: true } };
+      // Simulate a hook retaining native error while reporting host success;
+      // Core must still see the inner native error. Ordinary host errors reject.
+      return { isError: mode === 'outer', result: {
+        ...builtinMcpResult({ ...native, isError: true }), isError: false } };
     };
     await h.adapter.publish(input(), h.ctx, signal());
   }
@@ -212,7 +217,7 @@ test('scope change after async Inbox return cancels; late native success is not 
     });
     h.rawCtx.executeTool = async () => {
       if (kind === 'session') h.setSession('new-session'); else h.setCwd('/changed');
-      return { isError: false, result: native };
+      return { isError: false, result: builtinMcpResult(native) };
     };
     await assert.rejects(h.adapter.publish(input(), h.ctx, signal()), /cancelled/);
   }
@@ -231,14 +236,14 @@ test('lifecycle cancellation during native await rejects late result without fur
       entered();
       return new Promise(resolve => { finish = resolve; });
     }
-    return Promise.resolve({ isError: false, result: native });
+    return Promise.resolve({ isError: false, result: builtinMcpResult(native) });
   };
   const running = h.adapter.publish(input(), h.ctx, signal());
   await ready;
   assert.deepEqual(h.effects.map(effect => effect.name), [SEND]);
   h.adapter.invalidate();
   await assert.rejects(running, /cancelled/);
-  finish({ isError: false, result: native });
+  finish({ isError: false, result: builtinMcpResult(native) });
   await new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(h.effects.map(effect => effect.name), [SEND]);
   assert.equal(h.effects.length, 1, 'late send completion must not dispatch read_thread');

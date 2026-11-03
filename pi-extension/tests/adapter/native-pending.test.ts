@@ -5,13 +5,14 @@ import type { HostContext } from '../../adapter/types.ts';
 import type { NotificationService, PublicationContext, PublishArguments, NativeMcpResult, NotificationReceipt } from '../../core/types.ts';
 import { READ, SEND } from '../../adapter/schema.ts';
 import { deniedAttempts } from './deny-runtime.ts';
+import { builtinMcpResult } from './native-result.ts';
 
 type ReadPort = (args: { message_id: string; thread_id: string }, options?: { signal?: AbortSignal }) => Promise<NativeMcpResult>;
 const ids = { message_id: 'msg_' + '0'.repeat(26), thread_id: 'msg_' + '0'.repeat(26) };
 const args = (key = 'first'): PublishArguments => ({ text: 'Deliberate update', decision_key: key, revision: 'a'.repeat(40) });
 const result: NotificationReceipt = { state: 'held', admission: { status: 'held' },
   classification: { status: 'bypassed' }, delivery: { status: 'not_attempted' } };
-const native: NativeMcpResult = { content: [], structuredContent: {} };
+const native = builtinMcpResult({ content: [], structuredContent: {} });
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 function harness(spy: (args: PublishArguments, context: PublicationContext) => Promise<NotificationReceipt>,
   AdapterClass = NotificationAdapter) {
